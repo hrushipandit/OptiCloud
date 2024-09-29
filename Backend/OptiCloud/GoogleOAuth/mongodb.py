@@ -17,21 +17,31 @@ def get_database():
 
 
 def insert_user_data(user_data):
-    db = get_database()
+    db = get_database()  # Assuming get_database() gives the correct DB connection
     collection = db['test_collection']  # A specific collection for users
-    result = collection.insert_one(user_data)  # Insert user data into MongoDB
-    return result.inserted_id  # Return the ObjectId of the inserted document
+    
+    # Check if the user already exists by a unique field, e.g., 'email'
+    existing_user = collection.find_one({"email": user_data.get("email")})
+    
+    if existing_user:
+        # If the user exists, return the existing user's ObjectId
+        return existing_user["_id"]
+    else:
+        # If the user does not exist, insert the new user data
+        result = collection.insert_one(user_data)
+        return result.inserted_id  # Return the ObjectId of the inserted document
 
-def insert_data():
-    db = get_database()
-    collection = db['test_collection']
-    # Inserting a new document into the collection
-    collection.insert_one({'name': 'John Doe', 'age': 30})
-    return "Data inserted"
 
-def get_data():
-    db = get_database()
-    collection = db['test_collection']
-    # Retrieving a document from the collection
-    data = collection.find_one({'name': 'John Doe'})
-    return data
+# def insert_data():
+#     db = get_database()
+#     collection = db['test_collection']
+#     # Inserting a new document into the collection
+#     collection.insert_one({'name': 'John Doe', 'age': 30})
+#     return "Data inserted"
+
+# def get_data():
+#     db = get_database()
+#     collection = db['test_collection']
+#     # Retrieving a document from the collection
+#     data = collection.find_one({'name': 'John Doe'})
+#     return data
