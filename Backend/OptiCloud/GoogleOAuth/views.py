@@ -62,6 +62,77 @@ def update_user_role_arn(user_id, role_arn):
     except Exception as e:
         print(f"Error updating user role ARN: {e}")
         return False
+import requests
+from django.views.decorators.http import require_http_methods
+import os
+import openai
+
+
+@csrf_exempt
+def generate_text_from_gpt(final_output):
+    try:
+        # Parse the JSON data from request.body
+        print("final output is ",final_output)
+        # Prepare the prompt
+        prompt = r"""You are an AWS optimization and sustainability expert. Given the following CloudWatch metrics for an EC2 instance, provide specific recommendations to optimize resource usage and reduce the carbon footprint. The recommendations should target improvements in CPU, network usage, disk I/O, and overall health checks of the instance.
+
+For each metric, analyze the provided data and offer actionable steps to minimize resource consumption, identify idle resources, and suggest cost-efficient scaling or resizing. Also, recommend any AWS-specific features, such as auto-scaling, instance scheduling, or using more efficient instance types. Make your suggestions clear, concise, and focused on reducing carbon emissions and optimizing energy usage. Please keep the current usage and optimized usage to a single number since it will be visualized. the recommendation has to be one line strictly
+
+In addition, provide suggestions for what should be done for each metric and ensure that your output includes a very specific numeric metric summary that will be consistent each time so that they can be easily parsed. Follow the exact structure and format outlined below but the return file should be in JSON format with Current_Usage:  and Optimized_Usage: being strictly numbers and only numbers
+
+{final_output}
+Provide your response in the following specific format:
+{
+  'Optimization_Recommendations': {
+    'CPU_Utilization': {
+      'Recommendation': 'The average CPU usage is very low at 1.64%. Consider switching to a t3.micro instance or enabling auto-scaling to adapt to demand fluctuations.',
+      'Current_Usage': 1.64,
+      'Optimized_Usage': 0.5
+    },
+    'Disk_IO': {
+      'Recommendation': 'No disk operations detected. Review and detach unused EBS volumes to reduce costs and energy consumption.',
+      'Current_Usage': 0,
+      'Optimized_Usage': 0
+    },
+    'Network_Usage': {
+      'Recommendation': 'Network traffic shows consistent usage at 300 bytes per second on average. Implement VPC Endpoints and review data transfer to minimize unnecessary traffic.',
+      'Current_Usage': 300,
+      'Optimized_Usage': 150
+    },
+    'Instance_Health': {
+      'Recommendation': 'All health checks are passing. Implement instance scheduling to shut down the instance during non-peak hours to save energy.',
+      'Current_Usage': 100,
+      'Optimized_Usage': 50
+    }
+  },
+  'Carbon_Footprint_Reduction': {
+    'Reduction_Percentage': 30
+  }
+}"""
+
+        # API URL and key
+        api_url = "https://api.openai.com/v1/engines/davinci-codex/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"
+        }
+
+        # Sending POST request to GPT-3.5
+
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": f"{prompt}"}
+            ],
+            max_tokens=4096,
+            temperature=0.5,
+        )
+        refined_text = response.choices[0].message.content
+
+        return refined_text
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @csrf_exempt
 def user_data_view(request):
@@ -109,15 +180,12 @@ def receive_role_arn(request):
 
             user_updated = update_user_role_arn(user_id, role_arn)
 
-            if user_updated:
-                # Send a success response back to the client
-                return JsonResponse({'message': 'Role ARN updated successfully'})
 
             # Perform any logic with the role ARN (save it, process it, etc.)
             print(f"Received Role ARN: {role_arn}")
 
             customer_credentials = assume_customer_role(role_arn)
-
+            print("CC: ", customer_credentials)
             if customer_credentials:
                 # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
                 get_ec2_metrics_for_all_instances(customer_credentials)
@@ -188,37 +256,66 @@ def get_ec2_metrics_for_all_instances(customer_credentials):
     end_time = datetime.utcnow()
     start_time = end_time - timedelta(days=1)  # 24 hours before end time
 
+    # List of metrics to retrieve
+    metrics_to_fetch = [
+        'CPUUtilization',
+        'DiskReadOps',
+        'DiskWriteOps',
+        'DiskReadBytes',
+        'DiskWriteBytes',
+        'NetworkIn',
+        'NetworkOut',
+        'StatusCheckFailed',
+        'StatusCheckFailed_Instance',
+        'StatusCheckFailed_System'
+    ]
+
+    # Initialize a list to collect all the output strings
+    output = []
+
     for instance_id in instance_ids:
-        try:
-            response = cloudwatch_client.get_metric_statistics(
-                Namespace='AWS/EC2',
-                MetricName='CPUUtilization',
-                Dimensions=[
-                    {
-                        'Name': 'InstanceId',
-                        'Value': instance_id
-                    }
-                ],
-                StartTime=start_time.isoformat(),
-                EndTime=end_time.isoformat(),
-                Period=3600,
-                Statistics=['Average']
-            )
-
-            print(f"Metrics for EC2 instance {instance_id}:")
-            if response['Datapoints']:
-                for datapoint in response['Datapoints']:
-                    print(f"Time: {datapoint['Timestamp']}, Avg CPU: {datapoint['Average']}")
-            else:
-                print(f"No metrics found for instance {instance_id}")
-
-        except boto3.exceptions.Boto3Error as e:
-            print(f"Failed to fetch metrics for instance {instance_id}: {e}")
-
-
-
+        instance_output = f"Metrics for EC2 instance {instance_id}:\n"
         
-            
+        for metric_name in metrics_to_fetch:
+            try:
+                response = cloudwatch_client.get_metric_statistics(
+                    Namespace='AWS/EC2',
+                    MetricName=metric_name,
+                    Dimensions=[
+                        {
+                            'Name': 'InstanceId',
+                            'Value': instance_id
+                        }
+                    ],
+                    StartTime=start_time,
+                    EndTime=end_time,
+                    Period=3600,
+                    Statistics=['Average', 'Minimum', 'Maximum', 'Sum', 'SampleCount']
+                )
 
+                # If there are data points, add them to the output
+                if response['Datapoints']:
+                    instance_output += f"\nMetric: {metric_name}\n"
+                    for datapoint in sorted(response['Datapoints'], key=lambda x: x['Timestamp']):
+                        instance_output += (
+                            f"Time: {datapoint['Timestamp']}, "
+                            f"Avg: {datapoint.get('Average', 'N/A')}, "
+                            f"Min: {datapoint.get('Minimum', 'N/A')}, "
+                            f"Max: {datapoint.get('Maximum', 'N/A')}, "
+                            f"Sum: {datapoint.get('Sum', 'N/A')}, "
+                            f"SampleCount: {datapoint.get('SampleCount', 'N/A')}\n"
+                        )
+                else:
+                    instance_output += f"No data found for metric: {metric_name}\n"
 
+            except boto3.exceptions.Boto3Error as e:
+                instance_output += f"Failed to fetch metric {metric_name} for instance {instance_id}: {e}\n"
 
+        # Add the instance's metrics to the output list
+        output.append(instance_output)
+
+    # Combine all collected output into a single string
+    final_output = "\n".join(output)
+    print(final_output)
+    response = generate_text_from_gpt(final_output)
+    print("response is:",response)
