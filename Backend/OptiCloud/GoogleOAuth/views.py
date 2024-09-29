@@ -38,6 +38,7 @@ def get_user_role_arn(request):
                 customer_credentials = assume_customer_role(user['roleArn'])
                 ec2_metrics = get_ec2_metrics_for_all_instances(customer_credentials)
                         # Update the user's roleArn
+                print("Done")
                 collection.update_one({"id": user_id}, {"$set": {"aws_metrics": ec2_metrics}})
                 return JsonResponse({'roleArn': user['roleArn']}, status=200)
             else:
@@ -133,7 +134,7 @@ Provide your response in the following specific format:
             temperature=0.5,
         )
         refined_text = response.choices[0].message.content
-
+        print(refined_text)
         return refined_text
     except Exception as e:
         print(e)
@@ -195,8 +196,16 @@ def receive_role_arn(request):
                 # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
                 ec2_metrics = get_ec2_metrics_for_all_instances(customer_credentials)
                 db = get_database()
-                collection = db['test-collection']
-                collection.update_one({"id": user_id}, {"$set": {"aws_metrics": ec2_metrics}})
+                print(db)
+                print(user_id)
+                collection = db['test_collection']
+                print(collection)
+                try:
+                    user = collection.find_one({"id": str(user_id)})
+                    print(user)
+                    collection.update_one({"id": user_id}, {"$set": {"aws_metrics": ec2_metrics}})
+                except e:
+                    print(e)
                 
             else:
                 print("Could not assume role, please check the role ARN and permissions.")
