@@ -17,8 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include  # Make sure to include 'include'
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('insert/', views.insert_view, name='insert-data'),
+    path('retrieve/', views.retrieve_view, name='retrieve-data'),
 ]
