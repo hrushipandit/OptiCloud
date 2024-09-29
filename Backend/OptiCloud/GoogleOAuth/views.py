@@ -32,8 +32,14 @@ def get_user_role_arn(request):
             # Find the user by their 'id' field (not '_id')
             user = collection.find_one({"id": user_id})
 
+
             if user and 'roleArn' in user:
                 # Return the roleArn if found
+                customer_credentials = assume_customer_role(user['roleArn'])
+                ec2_metrics = get_ec2_metrics_for_all_instances(customer_credentials)
+                        # Update the user's roleArn
+                print("Done")
+                collection.update_one({"id": user_id}, {"$set": {"aws_metrics": ec2_metrics}})
                 return JsonResponse({'roleArn': user['roleArn']}, status=200)
             else:
                 # User or roleArn not found
@@ -128,7 +134,7 @@ Provide your response in the following specific format:
             temperature=0.5,
         )
         refined_text = response.choices[0].message.content
-
+        print(refined_text)
         return refined_text
     except Exception as e:
         print(e)
@@ -188,7 +194,19 @@ def receive_role_arn(request):
             print("CC: ", customer_credentials)
             if customer_credentials:
                 # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
-                get_ec2_metrics_for_all_instances(customer_credentials)
+                ec2_metrics = get_ec2_metrics_for_all_instances(customer_credentials)
+                db = get_database()
+                print(db)
+                print(user_id)
+                collection = db['test_collection']
+                print(collection)
+                try:
+                    user = collection.find_one({"id": str(user_id)})
+                    print(user)
+                    collection.update_one({"id": user_id}, {"$set": {"aws_metrics": ec2_metrics}})
+                except e:
+                    print(e)
+                
             else:
                 print("Could not assume role, please check the role ARN and permissions.")
 
@@ -318,4 +336,22 @@ def get_ec2_metrics_for_all_instances(customer_credentials):
     final_output = "\n".join(output)
     print(final_output)
     response = generate_text_from_gpt(final_output)
-    print("response is:",response)
+    return response
+
+@csrf_exempt
+def get_cloudwatch_metrics(request):
+    if request.method == 'POST':
+        # Assuming you get customer credentials in the request
+        roleArn = json.loads(request.body).get('roleArn')
+
+        if roleArn:
+            # Fetch metrics
+            customer_credentials = assume_customer_role(roleArn)
+            metrics_data = get_ec2_metrics_for_all_instances(customer_credentials)
+
+            # Return the metrics data as JSON
+            return JsonResponse(metrics_data, safe=False)
+        else:
+            return JsonResponse({"error": "No credentials provided"}, status=400)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
