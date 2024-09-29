@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from urllib.parse import quote_plus
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,12 +80,17 @@ WSGI_APPLICATION = 'GoogleOAuth.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# Username and password with special characters
+username = 'user1'
+password = 'user1@OptiCloud'  # Example password with a special character
+
+# URL-encode the username and password
+encoded_username = quote_plus(username)
+encoded_password = quote_plus(password)
+
+# Use these encoded credentials in your connection string
+DATABASES = {}
+
 
 
 # Password validation
