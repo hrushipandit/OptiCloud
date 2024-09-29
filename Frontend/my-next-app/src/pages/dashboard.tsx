@@ -110,6 +110,7 @@ export default function Dashboard() {
         const data = await response.json();
 
         setRoleArn(data.roleArn); // Set the fetched roleArn
+        console.log(data.roleArn);
 
         setResponseMessage("Role ARN fetched successfully.");
       } else {

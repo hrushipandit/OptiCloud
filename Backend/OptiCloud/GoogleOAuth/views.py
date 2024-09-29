@@ -7,6 +7,11 @@ import boto3
 from datetime import datetime, timedelta
 from .mongodb import get_database
 from bson import ObjectId  # For handling MongoDB ObjectId
+import requests
+from django.views.decorators.http import require_http_methods
+import os
+import openai
+
 
 
 @csrf_exempt
@@ -62,11 +67,6 @@ def update_user_role_arn(user_id, role_arn):
     except Exception as e:
         print(f"Error updating user role ARN: {e}")
         return False
-import requests
-from django.views.decorators.http import require_http_methods
-import os
-import openai
-
 
 @csrf_exempt
 def generate_text_from_gpt(final_output):
