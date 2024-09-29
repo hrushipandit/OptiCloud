@@ -10,28 +10,78 @@ interface User {
   id?: string;
 }
 
+interface ExtendedUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  id?: string | null;
+}
+
 async function sendDataToBackend(user: User) {
   try {
-    const response = await fetch('http://localhost:8000/user-data/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user }),
+    const response = await fetch("http://localhost:8000/user-data/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user }),
     });
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log('Data posted successfully', data);
+    console.log("Data posted successfully", data);
   } catch (error) {
-    console.error('Error posting data:', error);
+    console.error("Error posting data:", error);
   }
 }
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [roleArn, setRoleArn] = useState<string>("");
+  const user = session?.user as ExtendedUser;
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
+
+  // Function to fetch the roleArn from the backend
+  const fetchRoleArn = async (userId: string | null) => {
+    if (!userId) return;
+
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/get-user-role-arn/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: userId, // Send the user ID to the backend to fetch the roleArn
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+
+        setRoleArn(data.roleArn); // Set the fetched roleArn
+
+        setResponseMessage("Role ARN fetched successfully.");
+      } else {
+        const errorData = await response.json();
+        setResponseMessage(errorData.message || "Failed to fetch Role ARN.");
+      }
+    } catch (error) {
+      console.error("Error fetching Role ARN:", error);
+      setResponseMessage("An error occurred while fetching the Role ARN.");
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated" && user?.id) {
+      fetchRoleArn(user.id); // Fetch the roleArn once the user is authenticated
+    }
+  }, [status, user?.id]);
 
   useEffect(() => {
     const handleSessionData = async () => {
@@ -59,7 +109,7 @@ export default function Dashboard() {
         {session ? (
           <div className="space-y-4">
             <p className="text-lg text-gray-700">
-              Welcome, {session.user?.name || 'Guest'}! You are logged in.
+              Welcome, {session.user?.name || "Guest"}! You are logged in.
             </p>
             <button
               onClick={() => signOut()}

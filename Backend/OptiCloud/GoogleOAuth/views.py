@@ -8,7 +8,42 @@ from datetime import datetime, timedelta
 from .mongodb import get_database
 from bson import ObjectId  # For handling MongoDB ObjectId
 
-# Helper function to update roleArn for a user
+
+@csrf_exempt
+def get_user_role_arn(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON body from the request
+            body = json.loads(request.body)
+            user_id = body.get('user_id')  # Extract the user_id from the request
+
+            if not user_id:
+                return JsonResponse({'message': 'User ID not provided'}, status=400)
+
+            # Access the MongoDB database and collection
+            db = get_database()
+            collection = db['test_collection']  # Your MongoDB collection
+
+            # Find the user by their 'id' field (not '_id')
+            user = collection.find_one({"id": user_id})
+
+            if user and 'roleArn' in user:
+                # Return the roleArn if found
+                return JsonResponse({'roleArn': user['roleArn']}, status=200)
+            else:
+                # User or roleArn not found
+                return JsonResponse({'message': 'User or Role ARN not found'}, status=404)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(f"Error fetching Role ARN: {e}")
+            return JsonResponse({'message': 'Internal server error', 'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+
+
+# update roleArn for a user
 def update_user_role_arn(user_id, role_arn):
     db = get_database()
     collection = db['test_collection']  # Your MongoDB collection for users

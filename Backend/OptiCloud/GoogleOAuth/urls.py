@@ -24,5 +24,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('api/receive-role-arn/', views.receive_role_arn, name='receive_role_arn'),
+    path('api/get-user-role-arn/', views.get_user_role_arn, name='get_user_role_arn'),
     path('user-data/', views.user_data_view, name='user-data'),
 ]
