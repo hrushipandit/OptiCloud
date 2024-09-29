@@ -6,12 +6,6 @@ import json
 import boto3
 from datetime import datetime, timedelta
 
-def json_serializer(value):
-    if isinstance(value, ObjectId):
-        return str(value)
-    return value
-
-
 @csrf_exempt
 def user_data_view(request):
     if request.method == 'OPTIONS':
