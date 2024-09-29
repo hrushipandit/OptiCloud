@@ -1,11 +1,19 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
   message: string;
 };
+
+interface ExtendedUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  id?: string | null;
+}
 
 const AwsSetup: React.FC = () => {
   const router = useRouter();
@@ -13,6 +21,9 @@ const AwsSetup: React.FC = () => {
   const [roleArn, setRoleArn] = useState<string>("");
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // To show a loading state while processing
+  const { data: session, status } = useSession();
+
+  const user = session?.user as ExtendedUser;
 
   const validateArn = (arn: string) => {
     const arnRegex = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z_0-9+=,.@\-_/]+$/;
@@ -20,6 +31,12 @@ const AwsSetup: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (status === "loading") return; // Wait until session is loaded
+    if (status !== "authenticated" || !session?.user) {
+      setResponseMessage("You must be logged in to submit the Role ARN.");
+      return;
+    }
+
     // 1. Validate the Role ARN
     if (!validateArn(roleArn)) {
       setResponseMessage("Invalid Role ARN. Please check the format.");
@@ -38,7 +55,15 @@ const AwsSetup: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ roleArn }), // Send the ARN as JSON
+          body: JSON.stringify({
+            roleArn,
+            user: {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              id: user.id,
+            },
+          }), // Send the ARN as JSON
         }
       );
 

@@ -1,10 +1,32 @@
 # views.py
 from django.http import JsonResponse
-from .mongodb import insert_data, get_data, insert_user_data
+from .mongodb import insert_user_data
 from django.views.decorators.csrf import csrf_exempt
 import json
 import boto3
 from datetime import datetime, timedelta
+from .mongodb import get_database
+from bson import ObjectId  # For handling MongoDB ObjectId
+
+# Helper function to update roleArn for a user
+def update_user_role_arn(user_id, role_arn):
+    db = get_database()
+    collection = db['test_collection']  # Your MongoDB collection for users
+
+    try:
+        # Example: If you're using MongoDB and the user collection
+        # Assuming you have a MongoDB collection called 'users'
+        user = collection.find_one({"id": user_id})  # Use user_id as a string directly
+
+        if user:
+            # Update the user's roleArn
+            collection.update_one({"id": user_id}, {"$set": {"roleArn": role_arn}})
+            return True
+        return False
+
+    except Exception as e:
+        print(f"Error updating user role ARN: {e}")
+        return False
 
 @csrf_exempt
 def user_data_view(request):
@@ -24,17 +46,15 @@ def user_data_view(request):
     else:
         return JsonResponse({'status': 'Error', 'message': 'Method not allowed'}, status=405)
 
-def insert_view(request):
-    result = insert_data()
-    return JsonResponse({'result': result})
+# def insert_view(request):
+#     result = insert_data()
+#     return JsonResponse({'result': result})
 
-def retrieve_view(request):
-    data = get_data()
-    return JsonResponse({'data': data})
+# def retrieve_view(request):
+#     data = get_data()
+#     return JsonResponse({'data': data})
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
+
 
 # csrf_exempt is used to disable CSRF checks (you should use this with caution)
 @csrf_exempt
@@ -44,11 +64,19 @@ def receive_role_arn(request):
             # Parse the JSON body
             body = json.loads(request.body)
 
-            # Extract the 'roleArn' from the request body
+            # Extract the 'roleArn' and 'user' from the request body
             role_arn = body.get('roleArn')
+            user = body.get('user', {})
+            user_id = user.get('id')  # Fetch 'id' from 'user'
 
-            if not role_arn:
-                return JsonResponse({'message': 'Role ARN not provided'}, status=400)
+            if not role_arn or not user_id:
+                return JsonResponse({'message': 'Role ARN or user not provided'}, status=400)
+
+            user_updated = update_user_role_arn(user_id, role_arn)
+
+            if user_updated:
+                # Send a success response back to the client
+                return JsonResponse({'message': 'Role ARN updated successfully'})
 
             # Perform any logic with the role ARN (save it, process it, etc.)
             print(f"Received Role ARN: {role_arn}")
@@ -56,9 +84,8 @@ def receive_role_arn(request):
             customer_credentials = assume_customer_role(role_arn)
 
             if customer_credentials:
-            # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
+                # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
                 get_ec2_metrics_for_all_instances(customer_credentials)
-                
             else:
                 print("Could not assume role, please check the role ARN and permissions.")
 
