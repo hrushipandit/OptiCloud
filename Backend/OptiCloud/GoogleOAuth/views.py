@@ -39,72 +39,41 @@ def generate_text_from_gpt(final_output):
         # Parse the JSON data from request.body
         print("final output is ",final_output)
         # Prepare the prompt
-        prompt = f"""You are an AWS optimization and sustainability expert. Given the following CloudWatch metrics for an EC2 instance, provide specific recommendations to optimize resource usage and reduce the carbon footprint. The recommendations should target improvements in CPU, network usage, disk I/O, and overall health checks of the instance.
-For each metric, analyze the provided data and offer actionable steps to minimize resource consumption, identify idle resources, and suggest cost-efficient scaling or resizing. Also, recommend any AWS-specific features, such as auto-scaling, instance scheduling, or using more efficient instance types. Make your suggestions clear, concise, and focused on reducing carbon emissions and optimizing energy usage.
-In addition, provide suggestions for what should be done for each metric and ensure that your output includes a very specific numeric metric summary and one-word answers that will be consistent each time so that they can be easily parsed. {final_output}  Follow the exact structure and format outlined below.
+        prompt = r"""You are an AWS optimization and sustainability expert. Given the following CloudWatch metrics for an EC2 instance, provide specific recommendations to optimize resource usage and reduce the carbon footprint. The recommendations should target improvements in CPU, network usage, disk I/O, and overall health checks of the instance.
+
+For each metric, analyze the provided data and offer actionable steps to minimize resource consumption, identify idle resources, and suggest cost-efficient scaling or resizing. Also, recommend any AWS-specific features, such as auto-scaling, instance scheduling, or using more efficient instance types. Make your suggestions clear, concise, and focused on reducing carbon emissions and optimizing energy usage. Please keep the current usage and optimized usage to a single number since it will be visualized. the recommendation has to be one line strictly
+
+In addition, provide suggestions for what should be done for each metric and ensure that your output includes a very specific numeric metric summary that will be consistent each time so that they can be easily parsed. Follow the exact structure and format outlined below but the return file should be in JSON format with Current_Usage:  and Optimized_Usage: being strictly numbers and only numbers
+
+{final_output}
 Provide your response in the following specific format:
-Optimization Recommendations:
-CPU Utilization:
-Recommendation: The average CPU usage is very low at 1.64%. Consider switching to a smaller instance type (e.g., t3.micro) or enabling auto-scaling to match demand.
-Summary:
-Avg: 1.64
-Min: 0.000989
-Max: 5.6333
-Resize: Yes
-Autoscale: Recommended
-Disk I/O:
-Recommendation: No disk operations detected. Review and delete unused EBS volumes to save costs and optimize energy usage.
-Summary:
-DiskReadOps: NoData
-DiskWriteOps: NoData
-Resize: No
-Detach: Yes
-Archive: Recommended
-Network Usage:
-Recommendation: Network traffic shows moderate usage. Use VPC Endpoints and review traffic patterns to avoid unnecessary data transfer.
-Summary:
-NetworkInAvg: 300
-NetworkOutAvg: 300
-Optimize: Yes
-VPC_Endpoint: Yes
-Instance Health:
-Recommendation: All health checks passed. Consider scheduling instance shutdowns during non-peak hours to conserve energy.
-Summary:
-HealthCheck: Passed
-ScheduleShutdown: Yes
-SuspendDuringOffHours: Yes
-Output Format Explanation
-Use a specific single-word answer like 'Yes,' 'No,' or 'Recommended' to make parsing easy. Always follow the format of providing both the detailed recommendation and the summarized metrics. Example Output:
-Optimization Recommendations:
-CPU Utilization:
-Recommendation: The average CPU usage is very low at 1.64%. Consider switching to a smaller instance type (e.g., t3.micro) or enabling auto-scaling to match demand.
-Summary:
-Avg: 1.64
-Min: 0.000989
-Max: 5.6333
-Resize: Yes
-Autoscale: Recommended
-Disk I/O:
-Recommendation: No disk operations detected. Ensure no unnecessary EBS volumes are attached. If this is persistent, consider using cheaper storage solutions like S3.
-Summary:
-DiskReadOps: NoData
-DiskWriteOps: NoData
-Resize: No
-Detach: Yes
-Archive: Recommended
-Network Usage:
-Recommendation: Moderate network traffic detected. Consider using VPC Endpoints and explore AWS Direct Connect for better efficiency.
-Summary:
-NetworkInAvg: 300
-NetworkOutAvg: 300
-Optimize: Yes
-VPC_Endpoint: Yes
-Instance Health:
-Recommendation: Instance health is good. Consider scheduling instance shutdowns during off-peak hours.
-Summary:
-HealthCheck: Passed
-ScheduleShutdown: Yes
-SuspendDuringOffHours: Yes"""
+{
+  'Optimization_Recommendations': {
+    'CPU_Utilization': {
+      'Recommendation': 'The average CPU usage is very low at 1.64%. Consider switching to a t3.micro instance or enabling auto-scaling to adapt to demand fluctuations.',
+      'Current_Usage': 1.64,
+      'Optimized_Usage': 0.5
+    },
+    'Disk_IO': {
+      'Recommendation': 'No disk operations detected. Review and detach unused EBS volumes to reduce costs and energy consumption.',
+      'Current_Usage': 0,
+      'Optimized_Usage': 0
+    },
+    'Network_Usage': {
+      'Recommendation': 'Network traffic shows consistent usage at 300 bytes per second on average. Implement VPC Endpoints and review data transfer to minimize unnecessary traffic.',
+      'Current_Usage': 300,
+      'Optimized_Usage': 150
+    },
+    'Instance_Health': {
+      'Recommendation': 'All health checks are passing. Implement instance scheduling to shut down the instance during non-peak hours to save energy.',
+      'Current_Usage': 100,
+      'Optimized_Usage': 50
+    }
+  },
+  'Carbon_Footprint_Reduction': {
+    'Reduction_Percentage': 30
+  }
+}"""
 
         # API URL and key
         api_url = "https://api.openai.com/v1/engines/davinci-codex/completions"
@@ -120,13 +89,14 @@ SuspendDuringOffHours: Yes"""
             messages=[
                 {"role": "user", "content": f"{prompt}"}
             ],
-            max_tokens=500,
+            max_tokens=4096,
             temperature=0.5,
         )
         refined_text = response.choices[0].message.content
 
         return refined_text
     except Exception as e:
+        print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @csrf_exempt
@@ -175,15 +145,12 @@ def receive_role_arn(request):
 
             user_updated = update_user_role_arn(user_id, role_arn)
 
-            if user_updated:
-                # Send a success response back to the client
-                return JsonResponse({'message': 'Role ARN updated successfully'})
 
             # Perform any logic with the role ARN (save it, process it, etc.)
             print(f"Received Role ARN: {role_arn}")
 
             customer_credentials = assume_customer_role(role_arn)
-
+            print("CC: ", customer_credentials)
             if customer_credentials:
                 # Step 3: Use the customer's credentials to interact with EC2 and CloudWatch
                 get_ec2_metrics_for_all_instances(customer_credentials)
