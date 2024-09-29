@@ -53,6 +53,39 @@ def get_user_role_arn(request):
     else:
         return JsonResponse({'message': 'Method not allowed'}, status=405)
 
+@csrf_exempt
+def get_user_metrics(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON body from the request
+            body = json.loads(request.body)
+            user_id = body.get('user_id')  # Extract the user_id from the request
+
+            if not user_id:
+                return JsonResponse({'message': 'User ID not provided'}, status=400)
+
+            # Access the MongoDB database and collection
+            db = get_database()
+            collection = db['test_collection']  # Your MongoDB collection
+
+            # Find the user by their 'id' field (not '_id')
+            user = collection.find_one({"id": user_id})
+
+
+            if user and 'aws_metrics' in user:
+                # Return the metrics if found
+                return JsonResponse({'aws_metrics': user['aws_metrics']}, status=200)
+            else:
+                # User or roleArn not found
+                return JsonResponse({'message': 'User or Metrics not found'}, status=404)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(f"Error fetching Role ARN: {e}")
+            return JsonResponse({'message': 'Internal server error', 'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
 
 # update roleArn for a user
 def update_user_role_arn(user_id, role_arn):
