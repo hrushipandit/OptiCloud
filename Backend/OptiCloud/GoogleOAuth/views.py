@@ -58,6 +58,7 @@ def get_user_metrics(request):
     if request.method == 'POST':
         try:
             # Parse the JSON body from the request
+            print ("the request is",request)
             body = json.loads(request.body)
             user_id = body.get('user_id')  # Extract the user_id from the request
 
