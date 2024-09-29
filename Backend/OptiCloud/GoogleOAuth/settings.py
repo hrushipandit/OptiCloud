@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',  # Google provider
+    'allauth.socialaccount.providers.google',
     'corsheaders',
+      # Ensure static files is listed after corsheaders # Google provider
 ]
 
 MIDDLEWARE = [
@@ -55,8 +56,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware', 
-    'corsheaders.middleware.CorsMiddleware',  # Add this before CommonMiddleware
-    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'GoogleOAuth.urls'

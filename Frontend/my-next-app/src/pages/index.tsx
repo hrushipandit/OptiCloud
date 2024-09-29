@@ -1,5 +1,4 @@
 import Link from "next/link";
-import styles from "../styles/Home.module.css"; // Make sure you have corresponding CSS
 import "../styles/globals.css";
 import { useSession, signIn, signOut } from "next-auth/react";
 
@@ -8,11 +7,18 @@ import { useSession, signIn, signOut } from "next-auth/react";
 export default function Home() {
 
   return (
-    <div className={styles.container}>
-      <main className={styles.main}>
-        <h1>Welcome to Opticloud</h1>
-        <p>To access your account, please sign in.</p>
-        <button onClick={() => signIn("google")} className={styles.formButton}>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <main className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <h1 className="text-3xl font-bold text-blue-600 mb-6">
+          Welcome to Opticloud
+        </h1>
+        <p className="text-lg text-gray-700 mb-6">
+          To access your account, please sign in.
+        </p>
+        <button
+          onClick={() => signIn("google")}
+          className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+        >
           Sign in with Google
         </button>
       </main>

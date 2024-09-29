@@ -1,24 +1,69 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+type Data = {
+  message: string;
+};
 
 const AwsSetup: React.FC = () => {
   const router = useRouter();
   const [showInput, setShowInput] = useState(false); // State to show/hide the input field
-  const [roleArn, setRoleArn] = useState(""); // State to store the role ARN entered by the user
+  const [roleArn, setRoleArn] = useState<string>("");
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // To show a loading state while processing
+
+  const validateArn = (arn: string) => {
+    const arnRegex = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z_0-9+=,.@\-_/]+$/;
+    return arnRegex.test(arn);
+  };
+
+  const handleSubmit = async () => {
+    // 1. Validate the Role ARN
+    if (!validateArn(roleArn)) {
+      setResponseMessage("Invalid Role ARN. Please check the format.");
+      return;
+    }
+
+    setLoading(true);
+    setResponseMessage(null);
+
+    // 2. Send the Role ARN to Django backend
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/receive-role-arn/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ roleArn }), // Send the ARN as JSON
+        }
+      );
+
+      const result = await response.json();
+
+      // 3. Handle the response from Django
+      if (response.ok) {
+        setResponseMessage("Role ARN successfully submitted.");
+      } else {
+        setResponseMessage(result.message || "Failed to submit Role ARN.");
+      }
+    } catch (error) {
+      console.error("Error submitting Role ARN:", error);
+      setResponseMessage("An error occurred while submitting the Role ARN.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSetUpAwsClick = () => {
-    setShowInput(true); // Show the input field when the button is clicked
+    setShowInput(true);
   };
 
   const handleRoleArnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRoleArn(event.target.value); // Update role ARN state
-  };
-
-  const handleSubmit = () => {
-    // Perform actions with the role ARN, like sending it to a backend or using it to configure AWS resources.
-    console.log("Role ARN entered:", roleArn);
-    // Add logic to handle the ARN as needed.
+    setRoleArn(event.target.value);
   };
 
   return (
@@ -66,7 +111,7 @@ const AwsSetup: React.FC = () => {
 
         <p className="mb-6 text-lg text-gray-700 font-medium">
           Once the stack is created, you can copy the <strong>Role ARN</strong>{" "}
-          and paste it below.
+          from the output tab and paste it below.
         </p>
 
         {/* Button to show the input field */}
