@@ -13,15 +13,14 @@ def get_database():
 
     client = MongoClient(connection_uri)
     db = client[db_name]
-
-    # Example: Insert data
-    db.test_collection.insert_one({'hello': 'world'})
-
-    # Example: Fetch data
-    data = db.test_collection.find_one()
-    print(data)
     return db
 
+
+def insert_user_data(user_data):
+    db = get_database()
+    collection = db['test_collection']  # A specific collection for users
+    result = collection.insert_one(user_data)  # Insert user data into MongoDB
+    return result.inserted_id  # Return the ObjectId of the inserted document
 
 def insert_data():
     db = get_database()

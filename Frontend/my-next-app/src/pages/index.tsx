@@ -1,9 +1,12 @@
 import Link from "next/link";
 import styles from "../styles/Home.module.css"; // Make sure you have corresponding CSS
-import { signIn } from "next-auth/react"; // Make sure you have corresponding CSS
 import "../styles/globals.css";
+import { useSession, signIn, signOut } from "next-auth/react";
+
+
 
 export default function Home() {
+
   return (
     <div className={styles.container}>
       <main className={styles.main}>

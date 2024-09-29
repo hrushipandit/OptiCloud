@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Google provider
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',  # Add this before CommonMiddleware
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'GoogleOAuth.urls'
@@ -91,6 +94,14 @@ encoded_password = quote_plus(password)
 # Use these encoded credentials in your connection string
 DATABASES = {}
 
+# settings.py
+
+CORS_ALLOW_ALL_ORIGINS = True  # For development, allow all origins
+# or
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # assuming your frontend runs on this URL
+    'http://127.0.0.1:3000',
+]
 
 
 # Password validation

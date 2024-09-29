@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include  # Make sure to include 'include'
 from . import views
+from .views import user_data_view, insert_view, retrieve_view
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('insert/', views.insert_view, name='insert-data'),
     path('retrieve/', views.retrieve_view, name='retrieve-data'),
+    path('user-data/', views.user_data_view, name='user-data'),
 ]

@@ -1,19 +1,54 @@
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+interface User {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  id?: string;
+}
+
+async function sendDataToBackend(user: User) {
+  try {
+    const response = await fetch('http://localhost:8000/user-data/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user }),
+    });
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('Data posted successfully', data);
+  } catch (error) {
+    console.error('Error posting data:', error);
+  }
+}
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  console.log("Session Data:", session);
 
   useEffect(() => {
-    // Check if the session is loaded and there is no user session
-    if (status === "unauthenticated") {
-      router.push("/api/auth/signin"); // Redirects to the sign-in page
-    }
-  }, [status, router]);
+    const handleSessionData = async () => {
+      if (status === "authenticated" && session?.user) {
+        console.log("Authenticated Session Data:", session.user);
+        await sendDataToBackend(session.user);
+      } else if (status === "unauthenticated") {
+        router.push("/api/auth/signin");
+      }
+    };
+
+    handleSessionData();
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>; // Optionally provide a better loading indicator
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
@@ -24,7 +59,7 @@ export default function Dashboard() {
         {session ? (
           <div className="space-y-4">
             <p className="text-lg text-gray-700">
-              Welcome, {session?.user?.name}! You are logged in.
+              Welcome, {session.user?.name || 'Guest'}! You are logged in.
             </p>
             <button
               onClick={() => signOut()}
