@@ -5,4 +5,5 @@ django_allauth
 cryptography
 django-cors-headers
 pyjwt
-
+requests
+python-dotenv

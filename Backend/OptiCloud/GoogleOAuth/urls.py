@@ -28,4 +28,5 @@ urlpatterns = [
     path('retrieve/', views.retrieve_view, name='retrieve-data'),
     path('api/receive-role-arn/', views.receive_role_arn, name='receive_role_arn'),
     path('user-data/', views.user_data_view, name='user-data'),
+    # path('api/generate-text/', views.generate_text_from_gpt, name='generate-text'),
 ]
