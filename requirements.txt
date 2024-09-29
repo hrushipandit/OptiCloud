@@ -2,4 +2,7 @@ boto3
 pymongo
 django
 django_allauth
+cryptography
+django-cors-headers
+pyjwt
 
