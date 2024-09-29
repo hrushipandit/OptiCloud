@@ -32,16 +32,16 @@ def insert_user_data(user_data):
         return result.inserted_id  # Return the ObjectId of the inserted document
 
 
-def insert_data():
-    db = get_database()
-    collection = db['test_collection']
-    # Inserting a new document into the collection
-    collection.insert_one({'name': 'John Doe', 'age': 30})
-    return "Data inserted"
+# def insert_data():
+#     db = get_database()
+#     collection = db['test_collection']
+#     # Inserting a new document into the collection
+#     collection.insert_one({'name': 'John Doe', 'age': 30})
+#     return "Data inserted"
 
-def get_data():
-    db = get_database()
-    collection = db['test_collection']
-    # Retrieving a document from the collection
-    data = collection.find_one({'name': 'John Doe'})
-    return data
+# def get_data():
+#     db = get_database()
+#     collection = db['test_collection']
+#     # Retrieving a document from the collection
+#     data = collection.find_one({'name': 'John Doe'})
+#     return data
