@@ -110,7 +110,6 @@ export default function Dashboard() {
         const data = await response.json();
 
         setRoleArn(data.roleArn); // Set the fetched roleArn
-        console.log(data.roleArn);
 
         setResponseMessage("Role ARN fetched successfully.");
       } else {
@@ -149,65 +148,145 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header Section */}
-      <header className="relative p-4 bg-gray-50">
-        {/* Buttons in the top-right corner */}
-        {session && (
-          <div className="absolute top-4 right-4 space-x-2">
-            <button
-              onClick={() => signOut()}
-              className="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600 transition"
-            >
-              Log Out
-            </button>
-            <Link href="/aws-setup" legacyBehavior>
-              <a className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition">
-                AWS Setup
-              </a>
-            </Link>
-          </div>
-        )}
-        {/* Welcome message in the center */}
-        <h1 className="text-2xl font-semibold text-center text-blue-600">
-          Welcome to Dashboard
-        </h1>
-      </header>
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black flex flex-col">
+      {/* Menu Bar */}
+      <nav className="bg-gray-800 p-4 border-b border-gray-700 flex items-center justify-between">
+        {/* App Name */}
+        <div className="text-xl font-extrabold text-teal-400">OptiCloud</div>
 
-      {/* Main Content - Dashboard Section */}
-      <main className="flex-grow p-6 bg-gray-50">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+        {/* Menu Items */}
+        <ul className="flex space-x-8 text-gray-300">
+          <li>
+            <a href="/dashboard" className="hover:text-white transition-all">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/aws-setup" className="hover:text-white transition-all">
+              Setup
+            </a>
+          </li>
+        </ul>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => signOut()}
+          className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-all"
+        >
+          Logout
+        </button>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-grow p-6 bg-gradient-to-r from-gray-800 to-gray-900 text-white">
+        <h2 className="text-2xl font-semibold mb-6 text-teal-400">
           AWS CloudWatch Metrics
         </h2>
 
         {/* Split the screen into two halves */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-6">
           {/* Left Side - CPU Utilization and Disk I/O */}
           <div className="w-1/2">
             {/* CPU Utilization Graph */}
-            <div className="bg-white shadow-md rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold mb-4">CPU Utilization</h3>
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                CPU Utilization
+              </h3>
               <Bar
-                data={getChartData(
-                  "CPU Utilization",
-                  dummyData.CPUUtilization.current,
-                  dummyData.CPUUtilization.optimized
-                )}
-                options={{ indexAxis: "y" }}
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "CPU Utilization",
+                      data: [
+                        dummyData.CPUUtilization.current,
+                        dummyData.CPUUtilization.optimized,
+                      ],
+                      backgroundColor: [
+                        "rgba(255, 99, 132, 0.7)",
+                        "rgba(54, 162, 235, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(255, 99, 132, 1)",
+                        "rgba(54, 162, 235, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
                 height={50}
               />
             </div>
 
             {/* Disk I/O Graph */}
-            <div className="bg-white shadow-md rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold mb-4">Disk I/O</h3>
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Disk I/O
+              </h3>
               <Bar
-                data={getChartData(
-                  "Disk I/O",
-                  dummyData.DiskIO.current,
-                  dummyData.DiskIO.optimized
-                )}
-                options={{ indexAxis: "y" }}
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Disk I/O",
+                      data: [
+                        dummyData.DiskIO.current,
+                        dummyData.DiskIO.optimized,
+                      ],
+                      backgroundColor: [
+                        "rgba(75, 192, 192, 0.7)",
+                        "rgba(153, 102, 255, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(75, 192, 192, 1)",
+                        "rgba(153, 102, 255, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
                 height={50}
               />
             </div>
@@ -216,29 +295,105 @@ export default function Dashboard() {
           {/* Right Side - Network Usage and Instance Health */}
           <div className="w-1/2">
             {/* Network Usage Graph */}
-            <div className="bg-white shadow-md rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold mb-4">Network Usage</h3>
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Network Usage
+              </h3>
               <Bar
-                data={getChartData(
-                  "Network Usage",
-                  dummyData.NetworkUsage.current,
-                  dummyData.NetworkUsage.optimized
-                )}
-                options={{ indexAxis: "y" }}
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Network Usage",
+                      data: [
+                        dummyData.NetworkUsage.current,
+                        dummyData.NetworkUsage.optimized,
+                      ],
+                      backgroundColor: [
+                        "rgba(255, 206, 86, 0.7)",
+                        "rgba(75, 192, 192, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(255, 206, 86, 1)",
+                        "rgba(75, 192, 192, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
                 height={50}
               />
             </div>
 
             {/* Instance Health Graph */}
-            <div className="bg-white shadow-md rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold mb-4">Instance Health</h3>
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Instance Health
+              </h3>
               <Bar
-                data={getChartData(
-                  "Instance Health",
-                  dummyData.InstanceHealth.current,
-                  dummyData.InstanceHealth.optimized
-                )}
-                options={{ indexAxis: "y" }}
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Instance Health",
+                      data: [
+                        dummyData.InstanceHealth.current,
+                        dummyData.InstanceHealth.optimized,
+                      ],
+                      backgroundColor: [
+                        "rgba(54, 162, 235, 0.7)",
+                        "rgba(255, 99, 132, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(54, 162, 235, 1)",
+                        "rgba(255, 99, 132, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
                 height={50}
               />
             </div>
