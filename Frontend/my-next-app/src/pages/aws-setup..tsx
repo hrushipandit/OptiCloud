@@ -26,23 +26,25 @@ const AwsSetup: React.FC = () => {
       return;
     }
 
-    // 2. Set loading state
     setLoading(true);
     setResponseMessage(null);
 
-    // 3. Logic to send the Role ARN to a backend or AWS
+    // 2. Send the Role ARN to Django backend
     try {
-      const response = await fetch("/api/sendRoleArn", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ roleArn }),
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/receive-role-arn/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ roleArn }), // Send the ARN as JSON
+        }
+      );
 
       const result = await response.json();
 
-      // 4. Handle response
+      // 3. Handle the response from Django
       if (response.ok) {
         setResponseMessage("Role ARN successfully submitted.");
       } else {
@@ -52,7 +54,7 @@ const AwsSetup: React.FC = () => {
       console.error("Error submitting Role ARN:", error);
       setResponseMessage("An error occurred while submitting the Role ARN.");
     } finally {
-      setLoading(false); // Stop the loading state
+      setLoading(false);
     }
   };
 
