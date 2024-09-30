@@ -77,9 +77,11 @@ def get_user_metrics(request):
                 # Return the metrics if found
                 try:
                     aws_metrics = json.loads(user['aws_metrics'])  # Assuming it's stored as a string
+                    print("Returning this:",aws_metrics)
                 except (TypeError, json.JSONDecodeError):
                     # If aws_metrics is already a dictionary, no need to parse
                     aws_metrics = user['aws_metrics']
+                    print("Returning this:",aws_metrics)
                 return JsonResponse({'aws_metrics': aws_metrics}, status=200)
             else:
                 # User or roleArn not found

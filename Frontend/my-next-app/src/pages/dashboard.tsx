@@ -23,21 +23,14 @@ ChartJS.register(
   Legend
 );
 
-// Dummy data for the API response
-const dummyData = {
-  CPUUtilization: { current: 65, optimized: 45 },
-  DiskIO: { current: 70, optimized: 55 },
-  NetworkUsage: { current: 60, optimized: 40 },
-  InstanceHealth: { current: 80, optimized: 90 },
-};
 
 // Function to generate chart data
-const getChartData = (current: number, optimized: number) => {
+const getChartData = (label: string, current: number, optimized: number) => {
   return {
     labels: ["Current Usage", "Optimized Usage"],
     datasets: [
       {
-        
+        label,
         data: [current, optimized],
         backgroundColor: ["#FF6384", "#36A2EB"], // Colors for bars
       },
@@ -59,27 +52,6 @@ interface ExtendedUser {
   image?: string | null;
   id?: string | null;
 }
-interface MetricDetail {
-  Recommendation: string;
-  Current_Usage: number;
-  Optimized_Usage: number;
-}
-
-interface OptimizationRecommendations {
-  CPU_Utilization: MetricDetail;
-  Disk_IO: MetricDetail;
-  Network_Usage: MetricDetail;
-  Instance_Health: MetricDetail;
-}
-
-interface CarbonFootprintReduction {
-  Reduction_Percentage: number;
-}
-
-interface ApiResponse {
-  Optimization_Recommendations: OptimizationRecommendations;
-  Carbon_Footprint_Reduction: CarbonFootprintReduction;
-}
 
 // Function to send user data to the backend
 async function sendDataToBackend(user: User) {
@@ -91,9 +63,7 @@ async function sendDataToBackend(user: User) {
       },
       body: JSON.stringify({ user }),
     });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+
     const data = await response.json();
     console.log("Data posted successfully", data);
   } catch (error) {
@@ -108,8 +78,8 @@ export default function Dashboard() {
   const [roleArn, setRoleArn] = useState<string>("");
   const user = session?.user as ExtendedUser;
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
-  const [user_metrics, setUserMetrics] = useState<any>(null);
-  const [metrics, setMetrics] = useState<OptimizationRecommendations | null>(null);
+  const [user_metrics, setUserMetrics] = useState<any | null>(null);
+
 
   // Function to fetch the roleArn from the backend
   const fetchRoleArn = async (userId: string | null) => {
@@ -161,12 +131,10 @@ const fetchUserMetrics = async(userId: string | null) => {
     });
     if (response.ok) {
       const data = await response.json();
-      //console.log("these are metrics:", data.aws_metrics); 
-      const aws_metrics = data.aws_metrics;
-      console.log("var is ", aws_metrics);
-      setMetrics(aws_metrics.Optimization_Recommendations);
-
-      setResponseMessage("Metrics fetched successfully.");
+      
+      setUserMetrics(data.aws_metrics);
+      console.log("these are metrics:", data.aws_metrics); 
+      console.log("these are metrics:", user_metrics); 
     } else {
       const errorData = await response.json();
       setResponseMessage(errorData.message || "Failed to fetch metrics.");
@@ -211,22 +179,136 @@ const fetchUserMetrics = async(userId: string | null) => {
   }, [session, status, router]);
 
   // Loading state while session is being checked
-  if (status === "loading") {
-    return <div>Loading...</div>; // Optionally provide a better loading indicator
+  if (!user_metrics) {
+    return <div>Loading all necessary data...</div>;
+  }
+  if (user_metrics) {
+    console.log("Before JSX,",user_metrics);
   }
 
+
   return (
+    
     <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black flex flex-col">
-      {/* Navigation and other UI elements */}
+      {/* Menu Bar */}
+      <nav className="bg-gray-800 p-4 border-b border-gray-700 flex items-center justify-between">
+        {/* App Name */}
+        <div className="text-xl font-extrabold text-teal-400">OptiCloud</div>
+
+        {/* Menu Items */}
+        <ul className="flex space-x-8 text-gray-300">
+          <li>
+            <a href="/dashboard" className="hover:text-white transition-all">
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/aws-setup" className="hover:text-white transition-all">
+              Setup
+            </a>
+          </li>
+        </ul>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => signOut()}
+          className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-all"
+        >
+          Logout
+        </button>
+      </nav>
+
+      {/* Main Content */}
       <main className="flex-grow p-6 bg-gradient-to-r from-gray-800 to-gray-900 text-white">
-        {Object.entries(metrics!).map(([key, value]) => (
-          <div key={key} className="w-full md:w-1/2 p-4">
+        <h2 className="text-2xl font-semibold mb-6 text-teal-400">
+          AWS CloudWatch Metrics
+        </h2>
+
+        {/* Split the screen into two halves */}
+        <div className="flex space-x-6">
+          {/* Left Side - CPU Utilization and Disk I/O */}
+          <div className="w-1/2">
+            {/* CPU Utilization Graph */}
             <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
-              <h3 className="text-lg font-semibold text-teal-300 mb-4">{key.replace(/_/g, ' ')}</h3>
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                CPU Utilization
+              </h3>
               <Bar
-                data={getChartData(value.Current_Usage, value.Optimized_Usage)}
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "CPU Utilization",
+                      data: [
+                        user_metrics?.Optimization_Recommendations?.CPU_Utilization?.Current_Usage || 0, 
+                        user_metrics?.Optimization_Recommendations?.CPU_Utilization?.Optimized_Usage || 0
+                      ],
+                      backgroundColor: [
+                        "rgba(255, 99, 132, 0.7)",
+                        "rgba(54, 162, 235, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(255, 99, 132, 1)",
+                        "rgba(54, 162, 235, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
                 options={{
-                  indexAxis: 'y',
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
+                height={50}
+              />
+            </div>
+
+            {/* Disk I/O Graph */}
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Disk I/O
+              </h3>
+              <Bar
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Disk I/O",
+                      data: [
+                        user_metrics?.Optimization_Recommendations?.Disk_IO?.Current_Usage || 0, 
+    user_metrics?.Optimization_Recommendations?.Disk_IO?.Optimized_Usage || 0
+                      ],
+                      backgroundColor: [
+                        "rgba(75, 192, 192, 0.7)",
+                        "rgba(153, 102, 255, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(75, 192, 192, 1)",
+                        "rgba(153, 102, 255, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
                   scales: {
                     x: {
                       grid: {
@@ -250,7 +332,115 @@ const fetchUserMetrics = async(userId: string | null) => {
               />
             </div>
           </div>
-        ))}
+
+          {/* Right Side - Network Usage and Instance Health */}
+          <div className="w-1/2">
+            {/* Network Usage Graph */}
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Network Usage
+              </h3>
+              <Bar
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Network Usage",
+                      data: [
+                        user_metrics?.Optimization_Recommendations?.Network_Usage?.Current_Usage || 0, 
+    user_metrics?.Optimization_Recommendations?.Network_Usage?.Optimized_Usage || 0
+
+                      ],
+                      backgroundColor: [
+                        "rgba(255, 206, 86, 0.7)",
+                        "rgba(75, 192, 192, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(255, 206, 86, 1)",
+                        "rgba(75, 192, 192, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
+                height={50}
+              />
+            </div>
+
+            {/* Instance Health Graph */}
+            <div className="backdrop-filter backdrop-blur-lg bg-white bg-opacity-10 shadow-lg rounded-lg p-6 mb-6 border border-gray-200 border-opacity-30">
+              <h3 className="text-lg font-semibold text-teal-300 mb-4">
+                Instance Health
+              </h3>
+              <Bar
+                data={{
+                  labels: ["Current", "Optimized"],
+                  datasets: [
+                    {
+                      label: "Instance Health",
+                      data: [
+                        user_metrics?.Optimization_Recommendations?.Instance_Health?.Current_Usage || 0, 
+    user_metrics?.Optimization_Recommendations?.Instance_Health?.Optimized_Usage || 0
+                      ],
+                      backgroundColor: [
+                        "rgba(54, 162, 235, 0.7)",
+                        "rgba(255, 99, 132, 0.7)",
+                      ],
+                      borderColor: [
+                        "rgba(54, 162, 235, 1)",
+                        "rgba(255, 99, 132, 1)",
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  scales: {
+                    x: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                    y: {
+                      grid: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                      },
+                      ticks: {
+                        color: "white",
+                      },
+                    },
+                  },
+                }}
+                height={50}
+              />
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );
