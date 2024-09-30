@@ -278,6 +278,7 @@ const fetchUserMetrics = async(userId: string | null) => {
                 }}
                 height={50}
               />
+               <p>{user_metrics?.Optimization_Recommendations?.CPU_Utilization?.Recommendation}</p>
             </div>
 
             {/* Disk I/O Graph */}
@@ -330,6 +331,7 @@ const fetchUserMetrics = async(userId: string | null) => {
                 }}
                 height={50}
               />
+              <p>{user_metrics?.Optimization_Recommendations?.Disk_IO?.Recommendation}</p>
             </div>
           </div>
 
@@ -348,7 +350,7 @@ const fetchUserMetrics = async(userId: string | null) => {
                       label: "Network Usage",
                       data: [
                         user_metrics?.Optimization_Recommendations?.Network_Usage?.Current_Usage || 0, 
-    user_metrics?.Optimization_Recommendations?.Network_Usage?.Optimized_Usage || 0
+                        user_metrics?.Optimization_Recommendations?.Network_Usage?.Optimized_Usage || 0
 
                       ],
                       backgroundColor: [
@@ -386,6 +388,7 @@ const fetchUserMetrics = async(userId: string | null) => {
                 }}
                 height={50}
               />
+              <p>{user_metrics?.Optimization_Recommendations?.Instance_Health?.Recommendation}</p>
             </div>
 
             {/* Instance Health Graph */}
@@ -438,9 +441,18 @@ const fetchUserMetrics = async(userId: string | null) => {
                 }}
                 height={50}
               />
+              <p>{user_metrics?.Optimization_Recommendations?.Instance_Health?.Recommendation}</p>
             </div>
           </div>
         </div>
+        <div className="mt-6">
+        <h3 className="text-xl font-semibold text-teal-300">
+          Carbon Footprint Reduction
+        </h3>
+        <p className="text-lg">
+          These recommendations will reduce the carbon footprint by {user_metrics?.Carbon_Footprint_Reduction?.Reduction_Percentage}%.
+        </p>
+      </div>
       </main>
     </div>
   );
