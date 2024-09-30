@@ -19,10 +19,12 @@ This Cloud Resource Optimization Platform is designed to enhance the efficiency 
 ## Getting Started
 To get started with this project, follow the steps below:
 1. **Clone the repository:**
-2. ```
+  ```
    git clone https://github.com/yourusername/cloud-resource-optimization.git
- '''
- 3. **Install dependencies:**
+
+  ```
+ 
+ 2. **Install dependencies:**
 Navigate to the project directory and install the required dependencies:
 ```
    pip install -r requirements.txt
