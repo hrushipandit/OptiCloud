@@ -12,7 +12,7 @@ This Cloud Resource Optimization Platform is designed to enhance the efficiency 
 ## Technologies Used
 - **Backend**: Django
 - **Frontend**: Next.js
-- **UI Design**: React and Tailwind CSS for a responsive and modern user interface
+- **UI Design**: Next.js and Tailwind CSS for a responsive and modern user interface
 - **AWS Integration**: Boto3 AWS SDK, CloudFormation
 - **LLM Integration**: Utilizes advanced machine learning models to process and analyze data
 
