@@ -19,15 +19,15 @@ This Cloud Resource Optimization Platform is designed to enhance the efficiency 
 ## Getting Started
 To get started with this project, follow the steps below:
 1. **Clone the repository:**
-  ```
-   git clone https://github.com/yourusername/cloud-resource-optimization.git
-  ```
+```
+    git clone https://github.com/hrushipandit/OptiCloud
+```
  
  2. **Install dependencies:**
 Navigate to the project directory and install the required dependencies:
 ```
-   pip install -r requirements.txt
-   cd frontend && npm install
+    pip install -r requirements.txt
+    cd Frontend\my-next-app && npm install
 ```
 
 Configure your AWS credentials: Ensure your AWS credentials are configured correctly by setting up the AWS CLI or exporting your credentials in your environment variables.
@@ -35,21 +35,16 @@ Configure your AWS credentials: Ensure your AWS credentials are configured corre
 3. Start the development servers:
 
 ```
-  # Start the Django backend server
-  python manage.py runserver
-  # In a new terminal, start the Next.js frontend
-  cd frontend && npm run dev
+    # Start the Django backend server
+    python manage.py runserver
+    # In a new terminal, start the Next.js frontend
+    cd frontend && npm run dev
 ```
 
-Contributing
+
+## Contributing
 Contributions to improve the platform are welcome. Please feel free to fork the repository, make changes, and submit a pull request. You can also open issues for bugs or feature requests.
 
-License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
-
-Contributing
-Contributions to improve the platform are welcome. Please feel free to fork the repository, make changes, and submit a pull request. You can also open issues for bugs or feature requests.
-
-License
+## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
