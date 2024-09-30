@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAM Role for OptiCloud Monitoring and Notification
+
+Resources:
+  # Create the IAM role for OptiCloud monitoring
+  OptiCloudMonitoringRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "OptiCloudMonitoringRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: "arn:aws:iam::017820697636:root" # Replace with OptiCloud's AWS account ID
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "CloudWatchReadOnlyPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:ListMetrics"
+                Resource: "*"
+        - PolicyName: "EC2ReadOnlyPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeInstances"
+                Resource: "*"
+
+Outputs:
+  RoleARN:
+    Description: "ARN of the OptiCloudMonitoringRole"
+    Value: !GetAtt OptiCloudMonitoringRole.Arn
