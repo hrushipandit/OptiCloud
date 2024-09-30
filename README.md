@@ -21,7 +21,6 @@ To get started with this project, follow the steps below:
 1. **Clone the repository:**
   ```
    git clone https://github.com/yourusername/cloud-resource-optimization.git
-
   ```
  
  2. **Install dependencies:**
@@ -33,13 +32,13 @@ Navigate to the project directory and install the required dependencies:
 
 Configure your AWS credentials: Ensure your AWS credentials are configured correctly by setting up the AWS CLI or exporting your credentials in your environment variables.
 
-Start the development servers:
+3. Start the development servers:
 
 ```
-# Start the Django backend server
-python manage.py runserver
-# In a new terminal, start the Next.js frontend
-cd frontend && npm run dev
+  # Start the Django backend server
+  python manage.py runserver
+  # In a new terminal, start the Next.js frontend
+  cd frontend && npm run dev
 ```
 
 Contributing
