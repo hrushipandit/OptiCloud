@@ -19,26 +19,26 @@ This Cloud Resource Optimization Platform is designed to enhance the efficiency 
 ## Getting Started
 To get started with this project, follow the steps below:
 1. **Clone the repository:**
-   ```bash
+   ```
    git clone https://github.com/yourusername/cloud-resource-optimization.git
  '''
  2. **Install dependencies:**
 Navigate to the project directory and install the required dependencies:
-```bash
+```
    pip install -r requirements.txt
    cd frontend && npm install
- '''
+```
 
 Configure your AWS credentials: Ensure your AWS credentials are configured correctly by setting up the AWS CLI or exporting your credentials in your environment variables.
 
 Start the development servers:
 
-'''bash
+```
 # Start the Django backend server
 python manage.py runserver
 # In a new terminal, start the Next.js frontend
 cd frontend && npm run dev
-'''
+```
 
 Contributing
 Contributions to improve the platform are welcome. Please feel free to fork the repository, make changes, and submit a pull request. You can also open issues for bugs or feature requests.
